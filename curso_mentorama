@@ -1,0 +1,89 @@
+# Questão 1: Faça um loop utilizando for para imprimir os múltiplos de 7 menores que 1000.
+
+  valores <- 1:1000
+  for (x in valores) {if (x %% 7 == 0) {print(x)} }
+  
+# Questão 2: Faça um loop utilizando while para imprimir os múltiplos de 4 menores que 1000.
+
+    i <- 1
+  while (i < 1000) {
+    if (i %% 4 == 0) {
+      print(i)
+    }
+    i <- i + 1
+  }
+
+# Questão 3: Faça um loop utilizando repeat para imprimir os múltiplos de 9 menores que 1000.
+
+    i <- 1
+    repeat {
+        if (i %% 9 == 0) {
+          print(i)
+        }
+        i <- i+1
+        if (i == 1000){
+          break
+        }
+        }
+# Questão 4.a) Crie um vetor de sequência de 1 até a parte inteira de 1000/7 e multiplique esse vetor por 7.
+
+    parte_inteira <- round(1000/7)
+    sequencia <- 1:parte_inteira
+    valor_final <- sequencia*7
+    print(valor_final)
+
+# Questão 4.b) Crie um vetor de sequência de 1 até a parte inteira de 1000/4 e multiplique esse vetor por 4.
+
+    parte_inteira <- round(1000/4)
+    sequencia <- 1:parte_inteira
+    valor_final <- sequencia*4
+    print(valor_final)
+
+# Questão 5:
+    ?set.seed
+    set.seed(36)
+    ?runif
+    i <- runif(n=100,min = 0, max = 1)
+    contagem <- 0
+    for (x in i) {
+    sum(x > 0.7)
+    contagem <- contagem + 1
+    print(contagem)
+    }
+    
+# Questão 6: Gere um vetor aleatório com 100 elementos utilizando a função runif. 
+# Utilizando for, conte quantos números são maiores que 0.7, some esses valores e imprima o resultado.
+
+    set.seed(1234)
+    df.PesoAltura <- data.frame(id = 1:30, 
+                                Altura = rnorm(n = 30, mean = 1.65, sd = .1),
+                                Peso = rnorm(n = 30, mean = 60, sd = .1))
+    df.PesoAltura$IMC <- df.PesoAltura$Peso / (df.PesoAltura$Altura^2)
+    df.PesoAltura$Classificacao <- 
+      ifelse(df.PesoAltura$IMC <= 17.0, "Muito abaixo do peso",
+      ifelse(df.PesoAltura$IMC <= 18.5, "Abaixo do peso",
+      ifelse(df.PesoAltura$IMC <= 25.0, "Peso normal",
+      ifelse(df.PesoAltura$IMC <= 30.0, "Acima do peso","Obesidade"))))
+      print(df.PesoAltura)
+      
+# Questão 7: Considere o data frame a seguir que apresenta Peso e Altura de 30 pessoas. Crie um loop que calcula o IMC da pessoa, imprime seu id, 
+# valor do IMC e a respectiva classificação, conforme os valores abaixo: < 17.0 Muito abaixo do peso, [17.0, 18.5) Abaixo do peso, 
+# [18.5, 25.0) Peso normal,[25.0, 30.0) Acima do peso e [30.0, 35.0) Obesidade
+
+    data("iris")
+    head(iris)
+    nome_variaveis <- names(iris)
+    for (x in nome_variaveis) {
+      tipo <- class(iris[[x]])
+      if (tipo == "numeric" || tipo == "integer") {
+        # Calcular a média para variáveis quantitativas
+        media <- mean(iris[[x]], na.rm = TRUE)
+        print(paste("Média da variável", x, "é", media))
+      } else if (tipo == "factor") {
+      # Calcular a tabela de frequência para variáveis fatoriais
+      tabela <- table(iris[[x]])
+      print(paste("Tabela de frequência da variável", x, "é:"))
+      print(tabela)
+      }
+    }
+    
