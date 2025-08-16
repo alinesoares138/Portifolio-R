@@ -1,4 +1,4 @@
-# Bem-vindo ao meu Portifolio da linguagem R!
+# Linguagem R!
 
-Aqui você encontra mini-projetos que criei durante o meu caminho de aprendizagem da linguagem.
+Olá! Este é o meu repositório de estudos com linguagem R
 
