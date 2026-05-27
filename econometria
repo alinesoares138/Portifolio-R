@@ -1,0 +1,134 @@
+# Regressão Linear
+Objetivo: Entender o efeito causal do abuso de álcool (abuse) sobre empregabilidade (employ)
+
+1-Importação de dados / pacotes
+install.packages("wooldridge")
+library(wooldridge)
+
+install.packages("AER") #para usar função de VI
+library(AER) 
+
+data('alcohol')
+
+#2-Definição o modelo de regressão
+#variável dependente / endógena = abuse (1 se a pessoa está empregada, 0 caso contrário)
+#variável independente / exógena = employ (se a pessoa abusa de álcool, 0 caso contrário)
+
+reg_simples <- lm(employ ~ abuse, data = alcohol )
+summary(reg_simples)
+
+#3-Resultado
+Call:
+lm(formula = employ ~ abuse, data = alcohol)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.90099  0.09901  0.09901  0.09901  0.12731 
+
+Coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  0.900995   0.003214 280.341  < 2e-16 ***
+abuse       -0.028305   0.010206  -2.773  0.00556 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.3023 on 9820 degrees of freedom
+Multiple R-squared:  0.0007826,	Adjusted R-squared:  0.0006809 
+F-statistic: 7.691 on 1 and 9820 DF,  p-value: 0.005559
+
+#4-Diagnóstico
+
+a) Intercepto (𝛽0)
+Estimate: 0.900995
+Isso significa que, para indivíduos que não abusam de álcool (abuse = 0), a probabilidade de estar empregado é aproximadamente 90,1%.
+Muito significativo (p < 2e-16), como esperado.
+
+b) Coeficiente de abuse (𝛽1)
+Estimativa: -0.0283
+Isso significa que abusar de álcool reduz a probabilidade de estar empregado em 2,83 pontos percentuais em relação a quem não abusa.
+Significância estatística: p = 0.00556 → altamente significativo (nível 1%)
+Interpretação: existe uma relação negativa entre abuso de álcool e empregabilidade.
+
+c) R² e ajuste
+R²: 0.00078 → muito baixo
+Indica que o modelo simples não explica quase nada da variação em empregabilidade, o que é esperado, já que estamos usando apenas uma variável explicativa.
+Erro padrão residual: 0.3023 → tamanho médio do erro.
+
+
+#Verificação se há omissão de variáveis ou não linearidade não capturada pelo modelo
+Objetivo: Entender o efeito causal do abuso de álcool (abuse) sobre empregabilidade (employ)
+
+#1-Importação de dados / pacotes
+library(lmtest) #para o teste reset
+
+#2-Definição do teste
+resettest(reg_simples, power = 2:3, type = "fitted")
+
+Onde, as hipóteses do teste são:
+H₀ (nula): o modelo está corretamente especificado (sem omissão de variáveis importantes, linearidade adequada)
+H₁ (alternativa): há erro de especificação (variáveis omitidas ou não linearidade)
+
+#3-Resultado
+data:  reg_simples
+RESET = 0, df1 = 2, df2 = 9818, p-value = 1
+
+#4-Diagnóstico
+-Como p-valor é muito maior que 5, isso indica que não há evidência estatística de erro de especificação no modelo simples employ ~ abuse.
+-Mesmo sem erro de especificação estatístico, o efeito de abuse pode estar enviesado por variáveis omitidas (idade, educação, região, histórico familiar etc.).
+
+
+# Variáveis instrumentais e 2SLS (OU Mínimos Quadrados em Dois Estágios)
+Objetivo: Entender o efeito causal do abuso de álcool (abuse) sobre empregabilidade (employ)
+
+#1-Importando pacote
+library(AER) #para rodar 2SLS
+
+#2-Definindo modelo com variáveis instrumentais
+iv_model <- ivreg(
+  employ ~ abuse | beertax + cigtax + ethanol + mothalc + fathalc + livealc,
+  data = alcohol
+)
+
+Onde, os instrumentos são:
+a)beertax: imposto estadual sobre cerveja ($ por galão).
+b)cigtax: imposto estadual sobre cigarro (centavos por maço).
+c)ethanol: consumo per capita de etanol no estado.
+d)mothalc: =1 se a mãe do indivíduo é alcoólatra.
+e)fathalc: =1 se o pai do indivíduo é alcoólatra.
+f)livealc: =1 se o indivíduo já viveu com um alcoólatra.
+g)summary(iv_model, diagnostics = TRUE)
+
+3-Resultado
+Intercepto: 0.89994 → Probabilidade de estar empregado quando abuse = 0 e instrumentos no nível médio.
+abuse: -0.01770, não significativo (p = 0.883) → Ao contrário do OLS, o efeito do abuso de álcool sobre empregabilidade não é estatisticamente significativo quando usamos instrumentos.
+Interpretando: depois de corrigir a possível endogeneidade com os instrumentos escolhidos, o efeito do abuso de álcool diminui e perde significância. Isso pode indicar que o OLS estava enviesado ou que os instrumentos não estão isolando bem o efeito causal.
+
+4-Diagnóstico
+a) Instrumentos fracos (Weak instruments)
+Estatística: 11.919, p < 0.001 → significativa
+Interpretação: Existe evidência de que os instrumentos estão correlacionados com a variável endógena (abuse). Ou seja, não são instrumentos fracos.
+
+b) Teste de endogeneidade (Wu-Hausman)
+Estatística: 0.008, p = 0.929 → não significativo
+Interpretação: Falhamos em rejeitar a hipótese nula de que abuse é exógeno. Ou seja, não há evidência de que OLS estivesse enviesado nesse caso. Isso explica por que o coeficiente OLS e IV são relativamente próximos.
+
+c) Teste de sobreidentificação (Sargan)
+Estatística: 27.318, p = 4.95e-05 → significativo
+Interpretação: Os instrumentos não parecem totalmente válidos. Algum(s) instrumento(s) podem estar correlacionados com o erro da equação estrutural (violando a exclusão).
+Isso indica que os instrumentos escolhidos podem não ser completamente apropriados para capturar apenas o efeito de abuse.
+
+d) R² e ajuste
+R² = 0.00067 → Muito baixo, mas esperado, porque employ é binário e o modelo tem apenas abuse como variável explicativa direta.
+Residual standard error = 0.3023 → Erro típico do modelo, próximo do OLS.
+
+5-Comparação
+| Modelo | Coef. abuse | Significância  |
+| ------ | ----------- | -------------- |
+| OLS    | -0.0283     | p = 0.00556 ** |
+| IV     | -0.0177     | p = 0.883      |
+
+O efeito do abuso diminuiu e não é mais significativo no IV.
+Isso mostra que, depois de controlar por endogeneidade com os instrumentos, o efeito direto do abuso de álcool sobre empregabilidade não é robusto.
+d) Teste F
+F = 7.691, p = 0.00556 → rejeitamos a hipótese nula de que o coeficiente de abuse é zero.
+Confirma a significância do efeito de abuso sobre empregabilidade.
